@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estación 3 | Clínica de la Convergencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        .custom-glow-esmeralda { box-shadow: 0 0 15px rgba(0, 255, 136, 0.4), inset 0 0 5px rgba(0, 255, 136, 0.4); }
+        .custom-glow-celeste { box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 5px rgba(0, 255, 255, 0.4); }
+        .option-card.selected { border-color: #00FFFF !important; box-shadow: 0 0 12px rgba(0, 255, 255, 0.3); background-color: #031e24 !important; }
+    </style>
+</head>
+<body class="bg-black text-slate-300 font-sans min-h-screen flex flex-col">
+
+    <script>
+        // CONFIGURACIÓN FIREBASE
+        const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ... (Tu lógica de base de datos de casos original) ...
+
+        // MODIFICACIÓN CRÍTICA EN showFinalReport PARA GUARDAR DATOS
+        async function showFinalReport() {
+            document.getElementById('view-active-decisions').classList.add('hidden');
+            document.getElementById('view-results').classList.remove('hidden');
+
+            // 1. Guardar en Firebase
+            try {
+                await db.collection("progreso_estacion_3").add({
+                    paciente: activePatient.name,
+                    precision: userAccuracy,
+                    tratamiento: userChoices.treatmentName,
+                    fecha: new Date().toISOString()
+                });
+            } catch (e) { console.error("Error al guardar en Firebase:", e); }
+
+            // 2. Lógica visual de resultados (tu código original)
+            if (userAccuracy < 10) userAccuracy = 10;
+            document.getElementById('result-precision').innerText = `${userAccuracy}%`;
+            
+            // ... (resto de tu lógica de renderizado original) ...
+
+            // 3. Reemplazar el botón de resolución por el de VOLVER AL MAPA
+            const container = document.querySelector('.flex.flex-col.sm\\:flex-row.gap-4.justify-center.mt-6');
+            container.innerHTML = `
+                <button onclick="window.location.href='https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/'" 
+                        class="bg-celeste text-black font-bold text-xs uppercase px-8 py-3.5 hover:bg-white transition tracking-wider rounded">
+                    VOLVER AL MAPA DE ESTACIONES
+                </button>
+            `;
+        }
+    </script>
+</body>
+</html>
