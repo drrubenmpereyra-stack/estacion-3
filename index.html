@@ -2,75 +2,63 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Estación 3 | Clínica de la Convergencia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Estación 3</title>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        body { background: #000; color: #ccc; font-family: sans-serif; }
-        .nodo-btn { border: 1px solid #d4af37; padding: 10px; margin: 5px; cursor: pointer; color: #d4af37; }
-        .nodo-btn:hover { background: #d4af37; color: #000; }
+        body { background: #000; color: #d4af37; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #simulador { border: 1px solid #d4af37; padding: 30px; width: 80%; max-width: 600px; text-align: center; }
+        button { display: block; width: 100%; margin: 10px 0; padding: 15px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; }
+        button:hover { background: #d4af37; color: #000; }
     </style>
 </head>
-<body class="p-10">
+<body>
 
-    <div id="pantalla-simulador" class="max-w-2xl mx-auto border border-[#d4af37] p-8 bg-[#050505]">
-        <h1 class="text-2xl text-[#d4af37] mb-4">ESTACIÓN 3: ABORDAJE CLÍNICO (Caso: Lucas B.)</h1>
-        <div id="contenido-fase">
-            <p id="texto-fase" class="mb-6"></p>
-            <div id="opciones-container"></div>
-        </div>
-    </div>
+<div id="simulador">
+    <h2 id="pregunta">Cargando...</h2>
+    <div id="botones"></div>
+</div>
 
-    <script>
-        const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<script>
+    // Inicialización Firebase
+    const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        const pasos = [
-            { fase: "Selección de Abordaje", pregunta: "¿Qué dispositivo clínico es óptimo para Lucas B.?", opciones: ["Psicoterapia Clásica", "Rehabilitación Neurocognitiva", "Terapia de Exposición"], correcta: 1 },
-            { fase: "Fundamentación", pregunta: "¿Por qué este abordaje?", opciones: ["Por catarsis", "Por plasticidad prefrontal", "Por arte"], correcta: 1 }
-        ];
+    const data = {
+        pregunta: "¿Qué dispositivo clínico es óptimo para Lucas B.?",
+        opciones: ["Psicoterapia Clásica", "Rehabilitación Neurocognitiva", "Terapia de Exposición"],
+        correcta: 1
+    };
 
-        let pasoActual = 0;
-        let puntaje = 0;
+    function iniciar() {
+        document.getElementById('pregunta').innerText = data.pregunta;
+        const divBotones = document.getElementById('botones');
+        data.opciones.forEach((op, i) => {
+            const btn = document.createElement('button');
+            btn.innerText = op;
+            btn.onclick = () => finalizar(i === data.correcta);
+            divBotones.appendChild(btn);
+        });
+    }
 
-        function render() {
-            if (pasoActual >= pasos.length) {
-                finalizar();
-                return;
-            }
-            document.getElementById('texto-fase').innerText = pasos[pasoActual].pregunta;
-            const container = document.getElementById('opciones-container');
-            container.innerHTML = pasos[pasoActual].opciones.map((op, i) => 
-                `<button class="nodo-btn w-full" onclick="validar(${i})">${op}</button>`
-            ).join('');
-        }
+    async function finalizar(esCorrecto) {
+        document.getElementById('simulador').innerHTML = `<h2>${esCorrecto ? '¡Correcto!' : 'Incorrecto'}</h2>`;
+        
+        await db.collection("progreso").add({
+            estacion: 3,
+            resultado: esCorrecto ? "Aprobado" : "Reprobado",
+            fecha: new Date().toISOString()
+        });
 
-        function validar(idx) {
-            if (idx === pasos[pasoActual].correcta) puntaje++;
-            pasoActual++;
-            render();
-        }
-
-        async function finalizar() {
-            document.getElementById('pantalla-simulador').innerHTML = `
-                <h2 class="text-xl text-[#d4af37]">Resultado Final: ${puntaje}/${pasos.length}</h2>
-                <button class="nodo-btn mt-6" onclick="enviarDatos()">GUARDAR Y VOLVER AL MAPA</button>
-            `;
-        }
-
-        async function enviarDatos() {
-            await db.collection("progreso").add({
-                estacion: 3,
-                paciente: "Lucas B.",
-                nota: puntaje,
-                fecha: new Date().toISOString()
-            });
+        setTimeout(() => {
             window.location.href = "https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/";
-        }
+        }, 2000);
+    }
 
-        render();
-    </script>
+    window.onload = iniciar;
+</script>
+
 </body>
 </html>
