@@ -2,63 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Estación 3</title>
-    <!-- Firebase -->
+    <title>Estación 3 | Clínica de la Convergencia</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        body { background: #000; color: #d4af37; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #simulador { border: 1px solid #d4af37; padding: 30px; width: 80%; max-width: 600px; text-align: center; }
-        button { display: block; width: 100%; margin: 10px 0; padding: 15px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; }
+        body { background: #050508; color: #d4af37; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .panel { border: 1px solid #d4af37; padding: 40px; width: 90%; max-width: 500px; background: #0d1117; border-radius: 10px; }
+        h3 { border-bottom: 1px solid #d4af37; padding-bottom: 10px; margin-top: 0; }
+        input { display: block; width: 100%; margin: 12px 0; padding: 12px; background: #000; border: 1px solid #d4af37; color: #d4af37; box-sizing: border-box; }
+        button { padding: 12px 20px; cursor: pointer; border: 1px solid #d4af37; background: transparent; color: #d4af37; margin: 5px 0; width: 100%; transition: 0.3s; }
         button:hover { background: #d4af37; color: #000; }
+        .instruccion { font-size: 0.85em; margin-bottom: 20px; color: #aaa; }
     </style>
 </head>
 <body>
 
-<div id="simulador">
-    <h2 id="pregunta">Cargando...</h2>
-    <div id="botones"></div>
+<div class="panel">
+    <h3>ESTACIÓN 3: CERTIFICACIÓN CLÍNICA</h3>
+    <input type="text" id="nombre" placeholder="APELLIDO Nombre">
+    
+    <div class="instruccion">
+        <p>1. Ingrese su nombre.</p>
+        <p>2. Acceda al Módulo Clínico para resolver el caso.</p>
+        <p>3. Regrese con los datos del PDF para certificar.</p>
+        <button onclick="window.open('https://drrubenmpereyra-stack.github.io/MODULO-TERAPEUTICO-ELITE/', '_blank')">IR A MÓDULO CLÍNICO</button>
+    </div>
+
+    <input type="text" id="caso" placeholder="Nombre del caso">
+    <input type="text" id="edad" placeholder="Edad">
+    <input type="text" id="categoria" placeholder="Categoría">
+    <input type="text" id="rigor" placeholder="Rigor metodológico">
+    <input type="text" id="eficacia" placeholder="Eficacia clínica">
+    <input type="text" id="rango" placeholder="Rango obtenido">
+
+    <button onclick="guardarDatos()">GUARDAR CERTIFICACIÓN</button>
+    <button onclick="window.location.href='https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/'">CERRAR Y VOLVER AL MAPA</button>
 </div>
 
 <script>
-    // Inicialización Firebase
     const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const data = {
-        pregunta: "¿Qué dispositivo clínico es óptimo para Lucas B.?",
-        opciones: ["Psicoterapia Clásica", "Rehabilitación Neurocognitiva", "Terapia de Exposición"],
-        correcta: 1
-    };
-
-    function iniciar() {
-        document.getElementById('pregunta').innerText = data.pregunta;
-        const divBotones = document.getElementById('botones');
-        data.opciones.forEach((op, i) => {
-            const btn = document.createElement('button');
-            btn.innerText = op;
-            btn.onclick = () => finalizar(i === data.correcta);
-            divBotones.appendChild(btn);
-        });
-    }
-
-    async function finalizar(esCorrecto) {
-        document.getElementById('simulador').innerHTML = `<h2>${esCorrecto ? '¡Correcto!' : 'Incorrecto'}</h2>`;
-        
-        await db.collection("progreso").add({
-            estacion: 3,
-            resultado: esCorrecto ? "Aprobado" : "Reprobado",
+    async function guardarDatos() {
+        const datos = {
+            usuario: document.getElementById('nombre').value,
+            caso: document.getElementById('caso').value,
+            edad: document.getElementById('edad').value,
+            categoria: document.getElementById('categoria').value,
+            rigor: document.getElementById('rigor').value,
+            eficacia: document.getElementById('eficacia').value,
+            rango: document.getElementById('rango').value,
             fecha: new Date().toISOString()
-        });
+        };
 
-        setTimeout(() => {
-            window.location.href = "https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/";
-        }, 2000);
+        if(!datos.usuario || !datos.caso) return alert("Por favor, complete al menos Nombre y Nombre del caso.");
+
+        try {
+            await db.collection("progreso_estacion_3").add(datos);
+            alert("Certificación registrada con éxito.");
+        } catch (e) {
+            alert("Error al guardar: " + e.message);
+        }
     }
-
-    window.onload = iniciar;
 </script>
-
 </body>
 </html>
