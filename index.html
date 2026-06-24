@@ -2,72 +2,75 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA ÉLITE 7.0 | MÓDULO CLÍNICO</title>
+    <title>Estación 3 | Clínica de la Convergencia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
         body { background: #000; color: #ccc; font-family: sans-serif; }
-        .hidden { display: none !important; }
-        .option-card { border: 1px solid #1e293b; padding: 15px; margin: 10px 0; cursor: pointer; transition: 0.2s; }
-        .option-card.selected { border-color: #00FFFF; background: #031e24; }
+        .nodo-btn { border: 1px solid #d4af37; padding: 10px; margin: 5px; cursor: pointer; color: #d4af37; }
+        .nodo-btn:hover { background: #d4af37; color: #000; }
     </style>
 </head>
-<body class="p-8">
+<body class="p-10">
 
-    <div id="app-container">
-        <h1 id="titulo" class="text-2xl text-white mb-4">SISTEMA ÉLITE 7.0 — SELECCIÓN DE CASO</h1>
-        <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-    </div>
-
-    <div id="view-active-decisions" class="hidden">
-        <h2 id="patient-name" class="text-xl text-cyan-400"></h2>
-        <div id="step-content"></div>
-        <div id="controls" class="mt-4"></div>
+    <div id="pantalla-simulador" class="max-w-2xl mx-auto border border-[#d4af37] p-8 bg-[#050505]">
+        <h1 class="text-2xl text-[#d4af37] mb-4">ESTACIÓN 3: ABORDAJE CLÍNICO (Caso: Lucas B.)</h1>
+        <div id="contenido-fase">
+            <p id="texto-fase" class="mb-6"></p>
+            <div id="opciones-container"></div>
+        </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = { apiKey: "AIzaSyD47_2UtWLFI_VRVvvXVAqn4zZzZ4d1ggo", projectId: "av-clinica-convergencia", authDomain: "av-clinica-convergencia.firebaseapp.com", databaseURL: "https://av-clinica-convergencia-default-rtdb.firebaseio.com", storageBucket: "av-clinica-convergencia.firebasestorage.app", messagingSenderId: "939404425675", appId: "1:939404425675:web:8cfae157099efabd741e4e" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // (Aquí iría toda tu base de datos therapyCasesDatabase que pasaste arriba...)
-        // He dejado el renderizado básico para que al menos cargue
-        
-        function renderCasesGrid() {
-            const grid = document.getElementById('cases-grid');
-            grid.innerHTML = therapyCasesDatabase.map(c => `
-                <div class="border p-4 bg-gray-900">
-                    <h3>${c.name}</h3>
-                    <button onclick="startCase(${c.id})" class="bg-blue-600 p-2 mt-2">Iniciar</button>
-                </div>
-            `).join('');
-        }
+        const pasos = [
+            { fase: "Selección de Abordaje", pregunta: "¿Qué dispositivo clínico es óptimo para Lucas B.?", opciones: ["Psicoterapia Clásica", "Rehabilitación Neurocognitiva", "Terapia de Exposición"], correcta: 1 },
+            { fase: "Fundamentación", pregunta: "¿Por qué este abordaje?", opciones: ["Por catarsis", "Por plasticidad prefrontal", "Por arte"], correcta: 1 }
+        ];
 
-        function startCase(id) {
-            document.getElementById('app-container').classList.add('hidden');
-            document.getElementById('view-active-decisions').classList.remove('hidden');
-            // Aquí continuarías con tu lógica de pasos...
-        }
+        let pasoActual = 0;
+        let puntaje = 0;
 
-        // --- LÓGICA DE CIERRE Y ENVÍO A FIREBASE ---
-        async function finalizarYEnviar(nota) {
-            try {
-                await db.collection("progreso").add({
-                    estacion: 3,
-                    nota: nota,
-                    fecha: new Date().toISOString()
-                });
-                alert("Datos guardados. Volviendo al mapa...");
-                window.location.href = "https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/";
-            } catch (e) {
-                console.error("Error al enviar:", e);
-                window.location.href = "https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/";
+        function render() {
+            if (pasoActual >= pasos.length) {
+                finalizar();
+                return;
             }
+            document.getElementById('texto-fase').innerText = pasos[pasoActual].pregunta;
+            const container = document.getElementById('opciones-container');
+            container.innerHTML = pasos[pasoActual].opciones.map((op, i) => 
+                `<button class="nodo-btn w-full" onclick="validar(${i})">${op}</button>`
+            ).join('');
         }
 
-        window.onload = renderCasesGrid;
+        function validar(idx) {
+            if (idx === pasos[pasoActual].correcta) puntaje++;
+            pasoActual++;
+            render();
+        }
+
+        async function finalizar() {
+            document.getElementById('pantalla-simulador').innerHTML = `
+                <h2 class="text-xl text-[#d4af37]">Resultado Final: ${puntaje}/${pasos.length}</h2>
+                <button class="nodo-btn mt-6" onclick="enviarDatos()">GUARDAR Y VOLVER AL MAPA</button>
+            `;
+        }
+
+        async function enviarDatos() {
+            await db.collection("progreso").add({
+                estacion: 3,
+                paciente: "Lucas B.",
+                nota: puntaje,
+                fecha: new Date().toISOString()
+            });
+            window.location.href = "https://drrubenmpereyra-stack.github.io/mapa-global-estaciones/";
+        }
+
+        render();
     </script>
 </body>
 </html>
